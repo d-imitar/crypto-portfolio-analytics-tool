@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
-import { getPortfolioAnalytics, getPortfolioResearch } from './services/api';
+import { getPortfolioAnalytics, getPortfolioResearch } from '../services/api';
 import './PortfolioAnalytics.css';
 
 interface Portfolio {
@@ -44,6 +44,8 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
       <h2>Portfolio Analytics</h2>
       <div className="metrics-grid">
         <div className="metric"><label>Portfolio Value</label><strong>{Number(analytics.total_value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</strong></div>
+        <div className="metric"><label>Long Value</label><strong>{Number(analytics.long_value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</strong></div>
+        <div className="metric"><label>Short Value</label><strong>{Number(analytics.short_value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</strong></div>
         <div className="metric"><label>Volatility</label><strong>{Number(analytics.volatility || 0).toFixed(2)}</strong></div>
         <div className="metric"><label>Beta</label><strong>{Number(analytics.beta || 0).toFixed(2)}</strong></div>
         <div className="metric"><label>Sharpe</label><strong>{Number(analytics.sharpe_ratio || 0).toFixed(2)}</strong></div>

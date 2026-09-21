@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, List, Optional
 
 import requests
 
