@@ -30,7 +30,22 @@ def _empty_summary(portfolio):
     }
 
 
+def _coerce_numeric_payload(value, field_name, *, minimum=None):
+    if value in (None, ''):
+        raise ValueError(f'{field_name} is required.')
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f'{field_name} must be numeric.') from exc
+    if minimum is not None and parsed < minimum:
+        raise ValueError(f'{field_name} must be at least {minimum}.')
+    return parsed
+
+
 def ensure_default_portfolio():
+    if os.getenv('AUTO_SEED_PORTFOLIO', '1').strip().lower() in {'0', 'false', 'no'}:
+        return None
+
     portfolio = Portfolio.query.filter_by(name='Default crypto portfolio').first()
     if portfolio:
         return portfolio
@@ -72,6 +87,8 @@ def ensure_default_portfolio():
 
 @bp.route('/list', methods=['GET'])
 def list_portfolios():
+    if not Portfolio.query.first():
+        ensure_default_portfolio()
     portfolios = Portfolio.query.order_by(Portfolio.created_at.desc()).all()
     return jsonify({'portfolios': [portfolio.to_dict() for portfolio in portfolios]})
 
@@ -154,16 +171,17 @@ def add_position(portfolio_id):
     if not symbol:
         return jsonify({'error': 'symbol is required'}), 400
 
-    quantity = float(payload.get('quantity') or 0)
-    average_cost = float(payload.get('average_cost') or 0)
-    current_price = float(payload.get('current_price') or 0)
+    try:
+        quantity = _coerce_numeric_payload(payload.get('quantity'), 'quantity', minimum=0)
+        average_cost = _coerce_numeric_payload(payload.get('average_cost'), 'average_cost', minimum=0)
+        current_price = _coerce_numeric_payload(payload.get('current_price'), 'current_price', minimum=0)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
     category = str(payload.get('category') or 'Unknown')
     market_cap_tier = str(payload.get('market_cap_tier') or 'Unknown')
     name = str(payload.get('name') or symbol)
     notes = str(payload.get('notes') or '')
-
-    if quantity <= 0:
-        return jsonify({'error': 'quantity must be greater than zero'}), 400
 
     existing = Holding.query.filter_by(portfolio_id=portfolio_id, symbol=symbol).first()
     if existing:

@@ -25,6 +25,7 @@ A local-first crypto portfolio analytics dashboard built with Flask, SQLite, Rea
 cd backend
 python -m venv .venv
 source .venv/bin/activate
+cp .env.example .env
 pip install -r requirements.txt
 python app.py
 ```
@@ -33,6 +34,7 @@ python app.py
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm start
 ```
@@ -65,10 +67,23 @@ SOL,Solana,30,150,175,Layer 1,Large Cap,
 
 ## Environment variables
 
+Backend example (`backend/.env`):
+
 ```env
 GEMINI_API_KEY=your_key_here
 GEMINI_MODEL_NAME=gemini-2.5-flash
 AUTO_SEED_PORTFOLIO=1
+BASE_CURRENCY=USD
+FLASK_DEBUG=0
+HOST=0.0.0.0
+PORT=5000
+CORS_ORIGINS=http://localhost:3000
+```
+
+Frontend example (`frontend/.env`):
+
+```env
+REACT_APP_API_BASE_URL=http://localhost:5000/api
 ```
 
 ## License

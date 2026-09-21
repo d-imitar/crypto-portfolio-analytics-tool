@@ -12,6 +12,7 @@ const PortfolioSummary: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) => 
   const [holdings, setHoldings] = useState<any[]>([]);
   const [research, setResearch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -24,8 +25,10 @@ const PortfolioSummary: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) => 
         setSummary(summaryRes.data.summary);
         setHoldings(holdingsRes.data.holdings || []);
         setResearch(researchRes.data.research || null);
+        setError('');
       } catch (error) {
         console.error('Failed to load summary', error);
+        setError('Unable to load summary data.');
       } finally {
         setLoading(false);
       }
@@ -34,6 +37,7 @@ const PortfolioSummary: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) => 
   }, [portfolio.id]);
 
   if (loading) return <div className="panel">Loading summary...</div>;
+  if (error) return <div className="panel">{error}</div>;
   if (!summary) return <div className="panel">No summary available</div>;
 
   const totalPnl = Number(summary.performance?.total_pnl || 0);
