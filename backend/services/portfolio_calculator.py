@@ -38,14 +38,20 @@ class PortfolioCalculator:
     def calculate_category_exposure(self) -> Dict[str, float]:
         exposure = defaultdict(float)
         for holding in self.holdings:
-            category = str(holding.get('category') or 'Unknown').strip() or 'Unknown'
+            category = str(holding.get('category') or 'Cryptocurrency').strip() or 'Cryptocurrency'
+            if category.lower() == 'unknown':
+                category = 'Cryptocurrency'
             exposure[category] += abs(float(holding.get('current_value', 0) or 0))
         return self._normalize_exposure_map(exposure)
 
     def calculate_market_cap_exposure(self) -> Dict[str, float]:
         exposure = defaultdict(float)
         for holding in self.holdings:
-            tier = str(holding.get('market_cap_tier') or 'Unknown').strip() or 'Unknown'
+            tier = str(holding.get('market_cap_tier') or 'Unspecified').strip() or 'Unspecified'
+            if tier.lower() == 'unknown':
+                tier = 'Unspecified'
+            if tier == 'Unspecified' and float(holding.get('market_cap') or 0) > 0:
+                tier = 'Large Cap' if float(holding.get('market_cap') or 0) >= 100_000_000 else 'Mid Cap' if float(holding.get('market_cap') or 0) >= 10_000_000 else 'Small Cap'
             exposure[tier] += abs(float(holding.get('current_value', 0) or 0))
         return self._normalize_exposure_map(exposure)
 

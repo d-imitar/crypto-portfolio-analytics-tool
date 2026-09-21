@@ -43,6 +43,9 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
   const categoryEntries = Object.entries(categoryExposure.breakdown || {}).sort(([, a], [, b]) => Number(b) - Number(a));
   const marketEntries = Object.entries(marketExposure.breakdown || {}).sort(([, a], [, b]) => Number(b) - Number(a));
 
+  const hasBeta = analytics.beta !== null && analytics.beta !== undefined && analytics.beta !== '';
+  const hasSharpe = analytics.sharpe_ratio !== null && analytics.sharpe_ratio !== undefined && analytics.sharpe_ratio !== '';
+
   return (
     <div className="panel analytics-panel">
       <h2>Portfolio Analytics</h2>
@@ -51,8 +54,8 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
         <div className="metric"><label>Long Value</label><strong>{Number(analytics.long_value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</strong></div>
         <div className="metric"><label>Short Value</label><strong>{Number(analytics.short_value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })}</strong></div>
         <div className="metric"><label>Volatility</label><strong>{Number(analytics.volatility || 0).toFixed(2)}</strong></div>
-        <div className="metric"><label>Beta</label><strong>{Number(analytics.beta || 0).toFixed(2)}</strong></div>
-        <div className="metric"><label>Sharpe</label><strong>{Number(analytics.sharpe_ratio || 0).toFixed(2)}</strong></div>
+        {hasBeta && <div className="metric"><label>Beta</label><strong>{Number(analytics.beta || 0).toFixed(2)}</strong></div>}
+        {hasSharpe && <div className="metric"><label>Sharpe</label><strong>{Number(analytics.sharpe_ratio || 0).toFixed(2)}</strong></div>}
       </div>
 
       <div className="charts-grid">
@@ -74,7 +77,7 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
             <h3>Market Cap Tier</h3>
             <Plot
               data={[{ type: 'bar', y: marketEntries.map(([key]) => key), x: marketEntries.map(([, value]) => Number(value)), orientation: 'h', marker: { color: '#38bdf8' } }]}
-              layout={{ paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#e2e8f0' }, margin: { t: 10, b: 10, l: 110, r: 10 }, xaxis: { title: 'USD' } }}
+              layout={{ paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#e2e8f0' }, margin: { t: 10, b: 10, l: 110, r: 10 }, xaxis: { title: { text: 'USD' } } }}
               config={{ displayModeBar: false }}
               style={{ width: '100%', height: '320px' }}
               useResizeHandler

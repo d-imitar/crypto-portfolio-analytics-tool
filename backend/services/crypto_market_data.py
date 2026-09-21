@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import requests
 
@@ -20,6 +20,9 @@ DEFAULT_PRICES = {
     'OP': 2.1,
     'ARB': 1.1,
     'UNI': 8.3,
+    'ENA': 0.22,
+    'JTO': 0.5,
+    'LDO': 0.44,
 }
 
 
@@ -70,7 +73,7 @@ class CryptoMarketDataService:
                     'current_price': DEFAULT_PRICES.get(symbol, 1.0),
                     'market_cap': 0,
                     'total_volume': 0,
-                    'category': 'Unknown',
+                    'category': 'Cryptocurrency',
                     'market_cap_rank': 0,
                     'price_change_percentage_24h': 0,
                     'price_change_percentage_7d': 0,
@@ -98,8 +101,22 @@ class CryptoMarketDataService:
             'OP': 'optimism',
             'ARB': 'arbitrum',
             'UNI': 'uniswap',
+            'ENA': 'ethena',
+            'JTO': 'jito-governance-token',
+            'LDO': 'lido-dao',
         }
         return mapping.get(symbol, symbol.lower())
+
+    @staticmethod
+    def _market_cap_tier(market_cap: float) -> str:
+        market_cap = float(market_cap or 0)
+        if market_cap >= 100_000_000:
+            return 'Large Cap'
+        if market_cap >= 10_000_000:
+            return 'Mid Cap'
+        if market_cap > 0:
+            return 'Small Cap'
+        return 'Unknown'
 
     def enrich_holding(self, holding: Dict) -> Dict:
         symbol = normalize_symbol(holding.get('symbol'))
@@ -115,15 +132,20 @@ class CryptoMarketDataService:
         holding['current_value'] = current_value
         holding['cost_basis'] = cost_basis
         holding['unrealized_pnl'] = current_value - cost_basis
-        holding['category'] = holding.get('category') or str(market.get('category') or 'Unknown')
-        holding['market_cap_tier'] = holding.get('market_cap_tier') or (
-            'Large Cap' if float(market.get('market_cap') or 0) > 100_000_000 else 'Mid Cap'
-        )
+        category = str(holding.get('category') or market.get('category') or 'Cryptocurrency').strip() or 'Cryptocurrency'
+        if category.lower() == 'unknown':
+            category = 'Cryptocurrency'
+        holding['category'] = category
+        market_cap = float(market.get('market_cap') or holding.get('market_cap') or 0) if market else float(holding.get('market_cap') or 0)
+        tier = str(holding.get('market_cap_tier') or market.get('market_cap_tier') or '').strip()
+        if tier.lower() in {'', 'unknown'}:
+            tier = self._market_cap_tier(market_cap) if market_cap > 0 else 'Unspecified'
+        holding['market_cap_tier'] = tier
         holding['perf_1d'] = float(market.get('price_change_percentage_24h') or 0) if market else 0.0
         holding['perf_7d'] = float(market.get('price_change_percentage_7d') or 0) if market else 0.0
         holding['perf_30d'] = float(market.get('price_change_percentage_30d') or 0) if market else 0.0
         holding['perf_1y'] = float(market.get('price_change_percentage_1y') or 0) if market else 0.0
-        holding['market_cap'] = float(market.get('market_cap') or 0) if market else 0.0
+        holding['market_cap'] = market_cap
         holding['circulating_supply'] = float(market.get('circulating_supply') or 0) if market else 0.0
         return holding
 
