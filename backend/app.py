@@ -38,6 +38,10 @@ from routes import portfolio_routes, upload_routes
 app.register_blueprint(portfolio_routes.bp)
 app.register_blueprint(upload_routes.bp)
 
+with app.app_context():
+    if os.getenv('AUTO_SEED_PORTFOLIO', '1').strip().lower() not in {'0', 'false', 'no'}:
+        portfolio_routes.ensure_default_portfolio()
+
 
 @app.route('/api/health', methods=['GET'])
 def health_check():

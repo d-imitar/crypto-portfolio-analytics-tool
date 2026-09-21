@@ -43,6 +43,9 @@ def _coerce_numeric_payload(value, field_name, *, minimum=None):
 
 
 def ensure_default_portfolio():
+    if os.getenv('AUTO_SEED_PORTFOLIO', '1').strip().lower() in {'0', 'false', 'no'}:
+        return None
+
     portfolio = Portfolio.query.filter_by(name='Default crypto portfolio').first()
     if portfolio:
         return portfolio
@@ -84,6 +87,8 @@ def ensure_default_portfolio():
 
 @bp.route('/list', methods=['GET'])
 def list_portfolios():
+    if not Portfolio.query.first():
+        ensure_default_portfolio()
     portfolios = Portfolio.query.order_by(Portfolio.created_at.desc()).all()
     return jsonify({'portfolios': [portfolio.to_dict() for portfolio in portfolios]})
 
