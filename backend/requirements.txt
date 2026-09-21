@@ -1,0 +1,8 @@
+# backend requirements
+Flask==3.0.3
+Flask-Cors==5.0.0
+Flask-SQLAlchemy==3.1.1
+numpy==2.2.0
+python-dotenv==1.1.0
+requests==2.32.3
+SQLAlchemy==2.0.36
