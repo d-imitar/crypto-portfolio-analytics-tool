@@ -12,6 +12,7 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
   const [analytics, setAnalytics] = useState<any>(null);
   const [research, setResearch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const load = async () => {
@@ -22,8 +23,10 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
         ]);
         setAnalytics(analyticsRes.data.analytics);
         setResearch(researchRes.data.research);
+        setError('');
       } catch (error) {
         console.error('Failed to load analytics', error);
+        setError('Unable to load analytics right now.');
       } finally {
         setLoading(false);
       }
@@ -32,6 +35,7 @@ const PortfolioAnalytics: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) =
   }, [portfolio.id]);
 
   if (loading) return <div className="panel">Loading analytics...</div>;
+  if (error) return <div className="panel">{error}</div>;
   if (!analytics) return <div className="panel">No analytics available</div>;
 
   const categoryExposure = analytics.exposure_data?.category || {};

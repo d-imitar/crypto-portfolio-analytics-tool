@@ -33,11 +33,19 @@ function App() {
       const response = await getPortfolios();
       const items = response.data.portfolios || [];
       setPortfolios(items);
-      if (items.length && !selectedPortfolio) {
+
+      if (items.length === 0) {
+        setSelectedPortfolio(null);
+        return;
+      }
+
+      const stillExists = items.some((portfolio) => portfolio.id === selectedPortfolio?.id);
+      if (!selectedPortfolio || !stillExists) {
         setSelectedPortfolio(items[0]);
       }
     } catch (error) {
       console.error('Failed to load portfolios', error);
+      setMessage('Unable to load portfolios right now.');
     } finally {
       setLoading(false);
     }
