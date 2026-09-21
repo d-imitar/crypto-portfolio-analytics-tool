@@ -59,6 +59,7 @@ const PortfolioSummary: React.FC<{ portfolio: Portfolio }> = ({ portfolio }) => 
         <div className="research-card">
           <h3>Worst position</h3>
           <p><strong>{research.worst_position.symbol}</strong> — {research.worst_position.recommendation}</p>
+          <p>{research.research_note}</p>
           <p>{research.worst_position.research_summary}</p>
         </div>
       )}

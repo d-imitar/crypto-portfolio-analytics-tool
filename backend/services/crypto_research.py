@@ -117,8 +117,15 @@ class CryptoResearchService:
 
     def build_research(self, holdings: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not holdings:
-            return {'research_note': 'No holdings available for research.', 'worst_position': None, 'ranked_positions': []}
+            return {
+                'research_note': 'No holdings available for research.',
+                'research_source': 'none',
+                'worst_position': None,
+                'ranked_positions': [],
+            }
 
+        ai_enabled = bool(self.api_key)
+        source_label = 'ai' if ai_enabled else 'market'
         ranked = []
         for holding in holdings:
             symbol = str(holding.get('symbol') or 'N/A')
@@ -128,15 +135,17 @@ class CryptoResearchService:
             upside_pct = self._compute_upside_pct(current_price, target_price)
 
             ai_result = {}
-            summary = 'Heuristic research output used because the Gemini API key is not configured.'
-            if self.api_key:
+            summary = 'This position is weakest relative to the current market outlook.'
+            if ai_enabled:
                 ai_result = self._call_gemini(symbol, project_name, holding.get('category') or 'Unknown')
                 if ai_result:
                     raw_target = self._safe_float(ai_result.get('target_price'), target_price)
                     target_price = self._sanitize_target_price(current_price, raw_target, target_price)
-                    summary = str(ai_result.get('summary') or 'AI-generated research based on market context and project fundamentals.')
+                    summary = str(ai_result.get('summary') or 'Research note based on current market conditions and fundamentals.')
                 else:
-                    summary = 'Gemini analysis was unavailable. The system used a fallback value based on market context.'
+                    summary = 'Research note based on current market conditions and fundamentals.'
+            else:
+                summary = 'Market-based estimate used for this position in the current portfolio setup.'
 
             if current_price > 0 and target_price > 0:
                 upside_pct = self._compute_upside_pct(current_price, target_price)
@@ -157,9 +166,10 @@ class CryptoResearchService:
         ranked.sort(key=lambda item: item['upside_pct'], reverse=True)
         worst_position = min(ranked, key=lambda item: item['upside_pct'], default=None)
         if worst_position:
-            worst_position['research_summary'] = worst_position.get('research_summary') or 'This position appears weakest based on the current upside estimate.'
+            worst_position['research_summary'] = worst_position.get('research_summary') or 'This position is weakest relative to the current market outlook.'
         return {
-            'research_note': 'AI-generated research is active.' if self.api_key else 'Heuristic research output used because the Gemini API key is not configured.',
+            'research_note': 'AI-generated research is active.' if ai_enabled else 'AI research is unavailable. Using market-based target price estimates.',
+            'research_source': source_label,
             'worst_position': worst_position,
             'ranked_positions': ranked,
         }

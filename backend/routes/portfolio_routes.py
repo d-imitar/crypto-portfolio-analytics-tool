@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Portfolio, Holding, Performance
@@ -144,8 +146,8 @@ def get_analytics(portfolio_id):
         'short_value': summary.get('short_value', 0),
         'std_dev': summary.get('volatility', {}).get('std_dev', 0),
         'volatility': summary.get('volatility', {}).get('volatility', 0),
-        'beta': 0.0,
-        'sharpe_ratio': 0.0,
+        'beta': None,
+        'sharpe_ratio': None,
         'performance': summary.get('performance', {}),
         'exposure_data': {
             'category': summary.get('category_exposure', {}),

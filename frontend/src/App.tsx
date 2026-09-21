@@ -28,10 +28,10 @@ function App() {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState<string>('');
 
-  const loadPortfolios = async () => {
+  const loadPortfolios = async (preferredPortfolioId?: number) => {
     try {
       const response = await getPortfolios();
-      const items = response.data.portfolios || [];
+      const items: Portfolio[] = response.data.portfolios || [];
       setPortfolios(items);
 
       if (items.length === 0) {
@@ -39,7 +39,15 @@ function App() {
         return;
       }
 
-      const stillExists = items.some((portfolio) => portfolio.id === selectedPortfolio?.id);
+      if (preferredPortfolioId) {
+        const preferred = items.find((portfolio: Portfolio) => portfolio.id === preferredPortfolioId);
+        if (preferred) {
+          setSelectedPortfolio(preferred);
+          return;
+        }
+      }
+
+      const stillExists = items.some((portfolio: Portfolio) => portfolio.id === selectedPortfolio?.id);
       if (!selectedPortfolio || !stillExists) {
         setSelectedPortfolio(items[0]);
       }
@@ -85,9 +93,10 @@ function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      await uploadPortfolioCsv(file, selectedPortfolio?.id);
+      const response = await uploadPortfolioCsv(file, selectedPortfolio?.id);
+      const importedPortfolioId = response.data?.portfolio?.id;
       setMessage('CSV imported successfully');
-      await loadPortfolios();
+      await loadPortfolios(importedPortfolioId);
     } catch (error: any) {
       setMessage(error.response?.data?.error || 'Upload failed');
     } finally {
